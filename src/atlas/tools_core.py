@@ -6,6 +6,7 @@ from .registry import ToolRegistry, text_result, json_result
 from .tools_blender import register_blender_tools
 from .tools_diff import register_diff_tools
 from .tools_run import register_run_tools
+from .tools_benchmark import register_benchmark_tools
 
 JSON = Dict[str, Any]
 
@@ -36,13 +37,9 @@ def build_registry() -> ToolRegistry:
         lambda args: json_result({"echo": args["text"]}),
     )
 
-    # Core diff tools (no Blender needed)
     register_diff_tools(reg)
-
-    # Blender tools (require env ATLAS_BLENDER_EXE)
     register_blender_tools(reg)
-
-    # Run/training tools (uses blender snapshot + diff)
     register_run_tools(reg)
+    register_benchmark_tools(reg)
 
     return reg
