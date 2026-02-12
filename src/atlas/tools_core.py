@@ -5,6 +5,7 @@ from typing import Dict, Any
 from .registry import ToolRegistry, text_result, json_result
 from .tools_blender import register_blender_tools
 from .tools_diff import register_diff_tools
+from .tools_run import register_run_tools
 
 JSON = Dict[str, Any]
 
@@ -40,5 +41,8 @@ def build_registry() -> ToolRegistry:
 
     # Blender tools (require env ATLAS_BLENDER_EXE)
     register_blender_tools(reg)
+
+    # Run/training tools (uses blender snapshot + diff)
+    register_run_tools(reg)
 
     return reg
