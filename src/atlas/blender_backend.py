@@ -21,6 +21,44 @@ def get_blender_exe() -> str:
     return exe
 
 
+def _parse_json_from_stdout(stdout: str) -> JSON:
+    s = (stdout or "").strip()
+    if not s:
+        raise AtlasError("INTERNAL_ERROR", "Blender produced empty stdout")
+
+    # 1) Fast path: whole stdout is JSON
+    try:
+        return json.loads(s)
+    except Exception:
+        pass
+
+    # 2) Try line-by-line from the end (common case: last line is JSON)
+    lines = [ln.strip() for ln in s.splitlines() if ln.strip()]
+    for ln in reversed(lines):
+        if not (ln.startswith("{") and ln.endswith("}")):
+            continue
+        try:
+            return json.loads(ln)
+        except Exception:
+            continue
+
+    # 3) Try to extract a JSON object by slicing from last '{' to last '}'
+    last_lbrace = s.rfind("{")
+    last_rbrace = s.rfind("}")
+    if 0 <= last_lbrace < last_rbrace:
+        candidate = s[last_lbrace : last_rbrace + 1]
+        try:
+            return json.loads(candidate)
+        except Exception:
+            pass
+
+    raise AtlasError(
+        "INTERNAL_ERROR",
+        "Could not parse JSON from Blender stdout",
+        data={"stdout_tail": s[-4000:]},
+    )
+
+
 def run_blender_script(
     script_path: Path,
     *,
@@ -31,10 +69,7 @@ def run_blender_script(
     script_path = script_path.resolve()
     extra_args = list(extra_args or [])
 
-    cmd = [exe, "-b", "--factory-startup", "--python", str(script_path)]
-
-    # We always pass "--" to keep parsing consistent
-    cmd += ["--"]
+    cmd = [exe, "-b", "--factory-startup", "--python", str(script_path), "--"]
 
     if out_json_path:
         out_json_path = out_json_path.resolve()
@@ -59,8 +94,8 @@ def run_blender_script(
             "Blender returned non-zero exit code",
             data={
                 "returncode": proc.returncode,
-                "stdout": proc.stdout[-4000:],
-                "stderr": proc.stderr[-4000:],
+                "stdout": (proc.stdout or "")[-4000:],
+                "stderr": (proc.stderr or "")[-4000:],
             },
         )
 
@@ -68,7 +103,4 @@ def run_blender_script(
         txt = out_json_path.read_text(encoding="utf-8")
         return json.loads(txt)
 
-    txt = proc.stdout.strip()
-    if not txt:
-        raise AtlasError("INTERNAL_ERROR", "Blender produced empty stdout", data={"stderr": proc.stderr[-4000:]})
-    return json.loads(txt)
+    return _parse_json_from_stdout(proc.stdout)

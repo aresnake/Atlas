@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Dict
 
@@ -22,6 +21,7 @@ def register_run_tools(reg: ToolRegistry) -> ToolRegistry:
                     "action_args": {"type": "object"},
                     "snapshot_out_dir": {"type": "string"},
                     "run_id": {"type": "string"},
+                    "workspace_blend_path": {"type": "string"},
                 },
                 "required": ["action_tool", "action_args", "snapshot_out_dir"],
                 "additionalProperties": False,
@@ -34,6 +34,7 @@ def register_run_tools(reg: ToolRegistry) -> ToolRegistry:
                 action_args=args["action_args"],
                 snapshot_out_dir=Path(args["snapshot_out_dir"]),
                 run_id=args.get("run_id"),
+                workspace_blend_path=Path(args["workspace_blend_path"]) if args.get("workspace_blend_path") else None,
             )
         ),
     )

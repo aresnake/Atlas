@@ -4,7 +4,6 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .contract import AtlasError
 from .registry import ToolRegistry
 from .run_step import run_step_v1
 
@@ -25,39 +24,41 @@ def benchmark_smoke_v1(
     out_dir = out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # 3 deterministic steps
+    workspace = out_dir / "workspace.blend"
+    snaps = out_dir / "snaps"
+
     steps: List[JSON] = []
 
-    # Step 1: add cube
     steps.append(
         run_step_v1(
             reg,
             action_tool="atlas.blender.add_cube_v1",
             action_args={"name": "ATLAS_Bench_Cube_A", "location": {"x": 0.0, "y": 0.0, "z": 0.0}},
-            snapshot_out_dir=out_dir / "snaps",
+            snapshot_out_dir=snaps,
             run_id=f"{run_id}-01",
+            workspace_blend_path=workspace,
         )
     )
 
-    # Step 2: add cube
     steps.append(
         run_step_v1(
             reg,
             action_tool="atlas.blender.add_cube_v1",
             action_args={"name": "ATLAS_Bench_Cube_B", "location": {"x": 2.0, "y": 0.0, "z": 0.0}},
-            snapshot_out_dir=out_dir / "snaps",
+            snapshot_out_dir=snaps,
             run_id=f"{run_id}-02",
+            workspace_blend_path=workspace,
         )
     )
 
-    # Step 3: ping (no scene change expected)
     steps.append(
         run_step_v1(
             reg,
             action_tool="atlas.ping",
             action_args={},
-            snapshot_out_dir=out_dir / "snaps",
+            snapshot_out_dir=snaps,
             run_id=f"{run_id}-03",
+            workspace_blend_path=workspace,
         )
     )
 
@@ -66,6 +67,7 @@ def benchmark_smoke_v1(
     return {
         "schema": "atlas.benchmark.smoke.v1",
         "run_id": run_id,
+        "workspace_blend": str(workspace),
         "steps": [{"run_id": s["run_id"], "score": s["score"], "diff_counts": s["diff"]["counts"]} for s in steps],
         "total_score": float(total),
     }
