@@ -7,6 +7,7 @@ from .tools_blender import register_blender_tools
 from .tools_diff import register_diff_tools
 from .tools_run import register_run_tools
 from .tools_benchmark import register_benchmark_tools
+from .tools_train import register_train_tools
 
 JSON = Dict[str, Any]
 
@@ -41,5 +42,6 @@ def build_registry() -> ToolRegistry:
     register_blender_tools(reg)
     register_run_tools(reg)
     register_benchmark_tools(reg)
+    register_train_tools(reg)
 
     return reg
