@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .registry import ToolRegistry, text_result, json_result
 from .tools_blender import register_blender_tools
 from .tools_diff import register_diff_tools
-from .tools_run import register_run_tools
-from .tools_benchmark import register_benchmark_tools
+from .tools_run_v2 import register_run_tools
 from .tools_train import register_train_tools
 
 JSON = Dict[str, Any]
@@ -40,8 +39,7 @@ def build_registry() -> ToolRegistry:
 
     register_diff_tools(reg)
     register_blender_tools(reg)
-    register_run_tools(reg)
-    register_benchmark_tools(reg)
-    register_train_tools(reg)
+    register_run_tools(reg)      # v2
+    register_train_tools(reg)    # loop v1
 
     return reg
