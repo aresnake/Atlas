@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict, Any
 
 from .registry import ToolRegistry, text_result, json_result
+from .tools_blender import register_blender_tools
 
 JSON = Dict[str, Any]
 
@@ -32,5 +33,8 @@ def build_registry() -> ToolRegistry:
         },
         lambda args: json_result({"echo": args["text"]}),
     )
+
+    # Blender tools (may require env ATLAS_BLENDER_EXE)
+    register_blender_tools(reg)
 
     return reg
